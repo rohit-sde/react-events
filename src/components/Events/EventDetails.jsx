@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { deleteEvent, fetchEvent, queryClient } from "../../util/http.js";
 import { useState } from "react";
 import Modal from "../UI/Modal.jsx";
+import ErrorBlock from "../UI/ErrorBlock.jsx";
 
 export default function EventDetails() {
     const [isDeleting, setIsDeleting] = useState();
@@ -16,7 +17,12 @@ export default function EventDetails() {
         queryFn: ({ signal }) => fetchEvent({ signal, id: params.id }),
     });
 
-    const { mutate } = useMutation({
+    const {
+        mutate,
+        isPending: isPendingDeletion,
+        isError: isErrorDeletion,
+        error: deleteError,
+    } = useMutation({
         mutationFn: deleteEvent,
         onSuccess: () => {
             queryClient.invalidateQueries({
@@ -107,16 +113,33 @@ export default function EventDetails() {
                         cannot be undone.
                     </p>
                     <div className="form-acitons">
-                        <button
-                            onClick={handleStopDelete}
-                            className="button-text"
-                        >
-                            Cancel
-                        </button>
-                        <button onClick={handleDelete} className="button">
-                            Delete
-                        </button>
+                        {isPendingDeletion && <p>Deleting, please wait...</p>}
+                        {!isPendingDeletion && (
+                            <>
+                                <button
+                                    onClick={handleStopDelete}
+                                    className="button-text"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="button"
+                                >
+                                    Delete
+                                </button>
+                            </>
+                        )}
                     </div>
+                    {isErrorDeletion && (
+                        <ErrorBlock
+                            title="Failed to delete event"
+                            message={
+                                deleteError.info?.message ||
+                                "Failed to delete event, please try again later."
+                            }
+                        />
+                    )}
                 </Modal>
             )}
             <Outlet />
