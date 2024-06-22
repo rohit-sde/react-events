@@ -90,6 +90,7 @@ export async function fetchEvent({ id, signal }) {
         signal,
     });
 
+    // console.log(response);
     if (!response.ok) {
         const error = new Error("An error occurred while fetching the events");
         error.code = response.status;
